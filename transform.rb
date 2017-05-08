@@ -22,10 +22,10 @@ ARCS = [
 class Layout
 
   OFFSET = {
-    "Data Mgt" => 0,
-    "Techniques; Frameworks & Tools" => 90,
-    "Platforms & Infrastructure" => 180, 
-    "Languages" => 270,
+    "Maintenance & Security" => 0,
+    "Techniques" => 90,
+    "Tools" => 180, 
+    "Languages & Frameworks" => 270,
   }
 
   def self.angles(start, step)
