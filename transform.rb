@@ -22,7 +22,7 @@ ARCS = [
 class Layout
 
   OFFSET = {
-    "Maintenance & Security" => 0,
+    "Platforms & Security" => 0,
     "Techniques" => 90,
     "Tools" => 180, 
     "Languages & Frameworks" => 270,

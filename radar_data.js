@@ -118,7 +118,7 @@ var radar_data = [
 ]
   },
   { 
-    "quadrant": "Maintenance & Security",
+    "quadrant": "Platforms & Security",
     "left": w-300+30,
     "top" : 188,
     "color" : "#587486",
