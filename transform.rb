@@ -6,45 +6,45 @@ require "liquid"
 
 class Hash
   def remap(hash={})
-    each { |k,v| yield hash, k, v }
+    each {|k, v| yield hash, k, v}
     hash
   end
 end
 
 
 ARCS = [
-  { name: "ADOPT", r: 130 },
-  { name: "TRIAL", r: 220 },
-  { name: "ASSESS", r: 310 },
-  { name: "HOLD", r: 400 }
+    {name: 'ADOPT', r: 130},
+    {name: 'TRIAL', r: 220},
+    {name: 'ASSESS', r: 310},
+    {name: 'HOLD', r: 400}
 ]
 
 class Layout
 
   OFFSET = {
-    "Platforms & Security" => 0,
-    "Techniques" => 90,
-    "Tools" => 180, 
-    "Languages & Frameworks" => 270,
+      'Platforms & Security' => 0,
+      'Techniques' => 90,
+      'Tools' => 180,
+      'Languages & Frameworks' => 270,
   }
 
   def self.angles(start, step)
     Proc.new do
       Range.new(start, 90-start).step(step).to_a.shuffle +
-      Range.new(start + (step * 0.5).to_i, 90-start).step(step).to_a.shuffle
+          Range.new(start + (step * 0.5).to_i, 90-start).step(step).to_a.shuffle
     end
   end
 
   ANGLES = {
-    adopt: angles(10, 13),
-    trial: angles(8, 12), 
-    assess: angles(6, 10), 
-    hold: angles(4, 8), 
+      'adopt' => angles(10, 13),
+      'trial' => angles(8, 12),
+      'assess' => angles(6, 10),
+      'hold' => angles(4, 8)
   }
 
   def self.instance(quadrant, ring)
     @instances ||= {}
-    @instances["#{quadrant}:#{ring.to_s}"] ||= Layout.new(quadrant, ring)
+    @instances["#{quadrant}:#{ring}"] ||= Layout.new(quadrant, ring)
   end
 
   def initialize(quadrant, ring)
@@ -59,10 +59,10 @@ end
 
 
 class Blip
-  attr_reader :name, :quadrant, :score, :reason, :link
+  attr_reader :name, :quadrant, :ring, :reason, :tags, :url
 
-  def initialize(name, quadrant, score, reason, link)
-    @name, @quadrant, @score, @reason, @link = name, quadrant, score, reason, link
+  def initialize(name, quadrant, ring, reason, tags, url)
+    @name, @quadrant, @ring, @reason, @tags, @url = name, quadrant, ring, reason, tags, url
     @moved = false
   end
 
@@ -70,18 +70,17 @@ class Blip
     @moved = true
   end
 
-  def ring
-    return :adopt if score >= 1.5
-    return :trial if score >= 0
-    return :assess if score >= -1
-    return :hold
-  end
-
   def radius
-    return (50..ARCS[0][:r]-10).to_a.sample if ring == :adopt
-    return (ARCS[0][:r]+10..ARCS[1][:r]-10).to_a.sample if ring == :trial
-    return (ARCS[1][:r]+10..ARCS[2][:r]-10).to_a.sample if ring == :assess
-    return (ARCS[2][:r]+10..ARCS[3][:r]-10).to_a.sample
+    case ring
+      when 'adopt'
+        (50..ARCS[0][:r]-10).to_a.sample
+      when 'trial'
+        (ARCS[0][:r]+10..ARCS[1][:r]-10).to_a.sample
+      when 'assess'
+        (ARCS[1][:r]+10..ARCS[2][:r]-10).to_a.sample
+      when 'hold'
+        (ARCS[2][:r]+10..ARCS[3][:r]-10).to_a.sample
+    end
   end
 
   def angle
@@ -93,11 +92,26 @@ class Blip
   end
 
   def sortkey
-    [ ring, name.downcase ]
+    [ring, name.downcase]
+  end
+
+  def shape
+    if ring == 'hold'
+      case reason
+        when 'Discuss'
+          {name: 'diamond', angle: 0}
+        when 'Consolidation'
+          {name: 'square', angle: 0}
+        when 'Avoid'
+          {name: 'triangle', angle: 0}
+      end
+    else
+      @moved ? {name: 'triangle', angle: 45} : {name: 'circle', angle: 0}
+    end
   end
 
   def as_json
-    { name: name, pc: { r: radius, t: angle }, movement: movement, url: link }
+    {name: name, pc: {r: radius, t: angle}, shape: shape, url: url, tags: tags, reason: reason}
   end
 end
 
@@ -138,13 +152,15 @@ class Radar
   def self.parse(path)
     blips = {}
     CSV.open(path, 'rb', headers: true, col_sep: "\t").each do |line|
-      technology = line['Technology']
-      quadrant = line['Quadrant']
-      score = line['Score']
-      reason = line['Reason']
-      link = line['Link']
-      next if score.nil? || score.strip.empty?
-      blip = Blip.new(technology, quadrant, score.to_f, reason, link)
+      next if line['Ring'].nil? || line['Ring'].strip.empty?
+      blip = Blip.new(
+          line['Name'],
+          line['Quadrant'],
+          line['Ring'],
+          line['Reason'],
+          line['Tags'],
+          line['Url']
+      )
       blips[blip.name] = blip
     end
     blips
