@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
+require "csv"
 require "json"
 require "liquid"
-
 
 class Hash
   def remap(hash={})
@@ -59,10 +59,10 @@ end
 
 
 class Blip
-  attr_reader :name, :quadrant, :score
+  attr_reader :name, :quadrant, :score, :reason, :link
 
-  def initialize(name, quadrant, score)
-    @name, @quadrant, @score = name, quadrant, score
+  def initialize(name, quadrant, score, reason, link)
+    @name, @quadrant, @score, @reason, @link = name, quadrant, score, reason, link
     @moved = false
   end
 
@@ -97,7 +97,7 @@ class Blip
   end
 
   def as_json
-    { name: name, pc: { r: radius, t: angle }, movement: movement }
+    { name: name, pc: { r: radius, t: angle }, movement: movement, url: link }
   end
 end
 
@@ -137,13 +137,14 @@ class Radar
   # parse tab-separated data (exported from google doc)
   def self.parse(path)
     blips = {}
-    open(path).each do |line|
-      cols = line.split("\t")
-      name, quadrant, score, skip = cols[0], cols[1], cols[3], cols[6]
-      raise "PLEASE DELETE HEADER LINE: #{path}" if score == "AVG"
-      next if skip == "TRUE"
+    CSV.open(path, 'rb', headers: true, col_sep: "\t").each do |line|
+      technology = line['Technology']
+      quadrant = line['Quadrant']
+      score = line['Score']
+      reason = line['Reason']
+      link = line['Link']
       next if score.nil? || score.strip.empty?
-      blip = Blip.new(name, quadrant, score.to_f)
+      blip = Blip.new(technology, quadrant, score.to_f, reason, link)
       blips[blip.name] = blip
     end
     blips
