@@ -36,7 +36,7 @@ class Layout
   end
 
   ANGLES = {
-      'adopt' => angles(10, 13),
+      'adopt' => angles(4, 5),
       'trial' => angles(8, 12),
       'assess' => angles(6, 10),
       'hold' => angles(4, 8)
@@ -73,7 +73,7 @@ class Blip
   def radius
     case ring
       when 'adopt'
-        (50..ARCS[0][:r]-10).to_a.sample
+        (30..ARCS[0][:r]-10).to_a.sample
       when 'trial'
         (ARCS[0][:r]+10..ARCS[1][:r]-10).to_a.sample
       when 'assess'
