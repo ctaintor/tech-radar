@@ -73,7 +73,10 @@ class Blip
   def radius
     case ring
       when 'adopt'
-        (30..ARCS[0][:r]-10).to_a.sample
+        # bias towards the outside to avoid clumping in the middle
+        ((30..ARCS[0][:r]-10).to_a +
+            (60..ARCS[0][:r]-10).to_a +
+            (90..ARCS[0][:r]-10).to_a).sample
       when 'trial'
         (ARCS[0][:r]+10..ARCS[1][:r]-10).to_a.sample
       when 'assess'
