@@ -70,7 +70,11 @@ radar.add(pv.Dot)
   .text("hold, avoid")
   .textStyle("black");
 
-
+// explanation
+  radar.add(pv.Label)
+    .left(205)
+    .top(960)
+    .text("Hover over a blip to get more information. Click a blip to go to the explanation.")
 
 //quadrant lines -- vertical
 radar.add(pv.Line)
@@ -190,7 +194,7 @@ for (var i = 0; i < radar_data.length; i++) {
       .size(function(d) { return (d.blipSize !== undefined ? d.blipSize : 70); })
       .left(function(d) { return polar_to_raster(d.pc.r, d.pc.t)[0]; })
       .bottom(function(d) { return polar_to_raster(d.pc.r, d.pc.t)[1]; })                                
-      .title(function(d) { return d.name + (d.reason ? (" (" + d.reason + ")") : ""); })
+      .title(function(d) { return d.name + (d.reason ? (" (" + d.reason + ")") : "") + ": " + d.tags; })
       .cursor(function(d) { return ( d.url !== undefined ? "pointer" : "auto" ); })                                                            
       .event("click", function(d) { if ( d.url !== undefined ){self.location =  d.url}})
       .angle(function(d) { return d.shape.angle; })
